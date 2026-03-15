@@ -1,4 +1,6 @@
-# Remote Gateway (No Docker)
+# V-Bridge
+
+![](./v-bridge.png)
 
 Minimal implementation for browser-based VM access with authentication, authorization, and package-based billing.
 
