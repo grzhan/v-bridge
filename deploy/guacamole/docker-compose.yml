@@ -1,0 +1,9 @@
+services:
+  guacamole:
+    image: oznu/guacamole:latest
+    container_name: remote-gateway-guacamole
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./data:/config
