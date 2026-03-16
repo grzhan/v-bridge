@@ -228,7 +228,7 @@ const zhTranslations = {
   'admin.table.createdAt': '创建时间',
   'admin.table.role': '角色',
   'admin.table.username': '用户名',
-} as const;
+};
 
 export type TranslationShape = typeof zhTranslations;
 export type TranslationKey = keyof TranslationShape;

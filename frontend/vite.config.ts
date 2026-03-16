@@ -1,8 +1,10 @@
 import { defineConfig } from 'vite';
+import type { UserConfig as ViteUserConfig } from 'vite';
+import type { UserConfig as VitestUserConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 
-export default defineConfig({
+const config = {
   plugins: [react()],
   resolve: {
     alias: {
@@ -17,4 +19,6 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
   },
-});
+} satisfies ViteUserConfig & { test: VitestUserConfig['test'] };
+
+export default defineConfig(config);
