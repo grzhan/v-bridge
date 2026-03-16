@@ -14,4 +14,7 @@ export default defineConfig({
     host: true,
     allowedHosts: ['mac'],
   },
+  test: {
+    environment: 'jsdom',
+  },
 });

@@ -10,6 +10,7 @@ import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Table, Td, Th, Tr } from '@/components/ui/table';
 import { Textarea } from '@/components/ui/textarea';
+import { useI18n } from '@/features/i18n/i18n-context';
 import { deleteData, getData, patchData, postData } from '@/lib/api';
 import {
   formatCurrency,
@@ -26,6 +27,7 @@ function showError(error: any, fallback: string) {
 }
 
 export function AdminOverviewPage() {
+  const { t } = useI18n();
   const { data: orders } = useQuery({ queryKey: ['admin-orders'], queryFn: () => getData<Order[]>('/api/admin/orders') });
   const { data: resources } = useQuery({ queryKey: ['admin-resources'], queryFn: () => getData<Resource[]>('/api/admin/resources') });
   const { data: users } = useQuery({ queryKey: ['admin-users'], queryFn: () => getData<AdminUser[]>('/api/admin/users') });
@@ -39,31 +41,31 @@ export function AdminOverviewPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="概览" description="系统运行指标总览" />
+      <PageHeader title={t('admin.overview.title')} description={t('admin.overview.description')} />
       <div className="grid grid-cols-3 gap-4">
         <Card>
-          <CardDescription>有效订单数</CardDescription>
+          <CardDescription>{t('admin.overview.stat.activeOrders')}</CardDescription>
           <CardTitle className="text-2xl">{stats.activeOrders}</CardTitle>
         </Card>
         <Card>
-          <CardDescription>空闲资源数</CardDescription>
+          <CardDescription>{t('admin.overview.stat.idleResources')}</CardDescription>
           <CardTitle className="text-2xl">{stats.idleResources}</CardTitle>
         </Card>
         <Card>
-          <CardDescription>用户总余额</CardDescription>
+          <CardDescription>{t('admin.overview.stat.totalBalance')}</CardDescription>
           <CardTitle className="text-2xl">{formatCurrency(stats.totalBalance)}</CardTitle>
         </Card>
       </div>
       <Card>
-        <CardTitle className="mb-2">最近订单</CardTitle>
+        <CardTitle className="mb-2">{t('user.dashboard.recentOrdersTitle')}</CardTitle>
         <Table>
           <thead>
             <Tr>
-              <Th>订单号</Th>
-              <Th>用户ID</Th>
-              <Th>资源</Th>
-              <Th>状态</Th>
-              <Th>到期时间</Th>
+              <Th>{t('user.table.orderNo')}</Th>
+              <Th>{t('user.table.userId')}</Th>
+              <Th>{t('user.table.resource')}</Th>
+              <Th>{t('user.table.status')}</Th>
+              <Th>{t('user.table.expireAt')}</Th>
             </Tr>
           </thead>
           <tbody>
@@ -86,6 +88,7 @@ export function AdminOverviewPage() {
 export function AdminResourcesPage() {
   const qc = useQueryClient();
   const confirmAction = useConfirm();
+  const { t } = useI18n();
   const { data: resources } = useQuery({ queryKey: ['admin-resources'], queryFn: () => getData<Resource[]>('/api/admin/resources') });
   const [form, setForm] = useState({ name: '', host: '', port: '3389', auth_user: '', auth_pass: '', group_tag: 'windows' });
 
@@ -100,7 +103,7 @@ export function AdminResourcesPage() {
       setForm({ name: '', host: '', port: '3389', auth_user: '', auth_pass: '', group_tag: 'windows' });
       qc.invalidateQueries({ queryKey: ['admin-resources'] });
     },
-    onError: (e: any) => showError(e, '新增资源失败'),
+    onError: (e: any) => showError(e, t('admin.resources.create.error')),
   });
 
   const healthMutation = useMutation({
@@ -117,9 +120,9 @@ export function AdminResourcesPage() {
     mutationFn: (id: number) => deleteData<{ resource_id: number; deleted: boolean }>(`/api/admin/resources/${id}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-resources'] });
-      notify.success('资源删除成功');
+      notify.success(t('admin.resources.delete.success'));
     },
-    onError: (e: any) => showError(e, '删除资源失败'),
+    onError: (e: any) => showError(e, t('admin.resources.delete.error')),
   });
 
   function handleCreate(event: FormEvent) {
@@ -129,73 +132,77 @@ export function AdminResourcesPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="资源池" description="管理虚拟机库存与健康状态" />
+      <PageHeader title={t('admin.resources.title')} description={t('admin.resources.description')} />
       <Card>
-        <CardTitle className="mb-2">新增资源</CardTitle>
+        <CardTitle className="mb-2">{t('admin.resources.form.title')}</CardTitle>
         <form className="grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-12" onSubmit={handleCreate}>
           <Input
             className="xl:col-span-2"
-            placeholder="名称"
+            placeholder={t('admin.resources.form.namePlaceholder')}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             required
           />
           <Input
             className="xl:col-span-3"
-            placeholder="主机地址"
+            placeholder={t('admin.resources.form.hostPlaceholder')}
             value={form.host}
             onChange={(e) => setForm((f) => ({ ...f, host: e.target.value }))}
             required
           />
           <Input
             className="xl:col-span-1"
-            placeholder="端口"
+            placeholder={t('admin.resources.form.portPlaceholder')}
             value={form.port}
             onChange={(e) => setForm((f) => ({ ...f, port: e.target.value }))}
             required
           />
           <Input
             className="xl:col-span-2"
-            placeholder="登录用户"
+            placeholder={t('admin.resources.form.userPlaceholder')}
             value={form.auth_user}
             onChange={(e) => setForm((f) => ({ ...f, auth_user: e.target.value }))}
             required
           />
           <Input
             className="xl:col-span-2"
-            placeholder="登录密码"
+            placeholder={t('admin.resources.form.passwordPlaceholder')}
             value={form.auth_pass}
             onChange={(e) => setForm((f) => ({ ...f, auth_pass: e.target.value }))}
             required
           />
           <Input
             className="xl:col-span-1"
-            placeholder="分组标签"
+            placeholder={t('admin.resources.form.groupPlaceholder')}
             value={form.group_tag}
             onChange={(e) => setForm((f) => ({ ...f, group_tag: e.target.value }))}
           />
-          <Button className="w-full xl:col-span-1" type="submit" disabled={createMutation.isPending}>新增</Button>
+          <Button className="w-full xl:col-span-1" type="submit" disabled={createMutation.isPending}>
+            {t('admin.resources.form.submit')}
+          </Button>
         </form>
       </Card>
       <Card>
         <Table>
           <thead>
             <Tr>
-              <Th>名称</Th>
-              <Th>主机</Th>
-              <Th>状态</Th>
-              <Th>启用</Th>
-              <Th>健康状态</Th>
-              <Th>当前用户</Th>
-              <Th>到期时间</Th>
-              <Th>操作</Th>
+              <Th>{t('admin.table.name')}</Th>
+              <Th>{t('admin.resources.form.hostPlaceholder')}</Th>
+              <Th>{t('user.table.status')}</Th>
+              <Th>{t('common.enable')}</Th>
+              <Th>{t('admin.resources.table.health')}</Th>
+              <Th>{t('admin.resources.table.currentUser')}</Th>
+              <Th>{t('user.table.expireAt')}</Th>
+              <Th>{t('user.table.actions')}</Th>
             </Tr>
           </thead>
           <tbody>
             {(resources || []).map((resource) => (
               <Tr key={resource.id}>
                 <Td>{resource.name}</Td>
-                <Td>{resource.host}:{resource.port}</Td>
+                <Td>
+                  {resource.host}:{resource.port}
+                </Td>
                 <Td><Badge>{resource.status}</Badge></Td>
                 <Td>{formatEnabled(resource.enabled)}</Td>
                 <Td>{formatHealthStatus(resource.health_status)}</Td>
@@ -203,22 +210,24 @@ export function AdminResourcesPage() {
                 <Td>{formatDateTime(resource.lease_expire_at)}</Td>
                 <Td>
                   <div className="flex gap-2">
-                    <Button className="h-8 bg-slate-700 px-2 text-xs" onClick={() => healthMutation.mutate(resource.id)}>检测</Button>
+                    <Button className="h-8 bg-slate-700 px-2 text-xs" onClick={() => healthMutation.mutate(resource.id)}>
+                      {t('admin.resources.actions.healthCheck')}
+                    </Button>
                     <Button
                       className="h-8 bg-slate-700 px-2 text-xs"
                       onClick={() => toggleMutation.mutate({ id: resource.id, enabled: !resource.enabled })}
                     >
-                      {resource.enabled ? '停用' : '启用'}
+                      {resource.enabled ? t('admin.resources.actions.toggleDisable') : t('admin.resources.actions.toggleEnable')}
                     </Button>
                     <Button
                       className="h-8 bg-rose-600 px-2 text-xs"
                       disabled={deleteMutation.isPending}
                       onClick={async () => {
                         const ok = await confirmAction({
-                          title: '确认删除资源',
-                          description: `资源「${resource.name}」将从资源池移除，该操作不可恢复。`,
-                          confirmText: '确认删除',
-                          cancelText: '取消',
+                          title: t('admin.resources.delete.confirmTitle'),
+                          description: t('admin.resources.delete.confirmDescription', { name: resource.name }),
+                          confirmText: t('common.confirmDelete'),
+                          cancelText: t('common.cancel'),
                           variant: 'destructive',
                         });
                         if (!ok) {
@@ -227,7 +236,7 @@ export function AdminResourcesPage() {
                         deleteMutation.mutate(resource.id);
                       }}
                     >
-                      删除
+                      {t('common.delete')}
                     </Button>
                   </div>
                 </Td>
@@ -242,6 +251,7 @@ export function AdminResourcesPage() {
 
 export function AdminResourceImportPage() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const [text, setText] = useState('[\n  {"name":"Win-004","host":"192.168.1.14","port":3389,"protocol":"rdp","auth_user":"Administrator","auth_pass":"***","group_tag":"windows"}\n]');
 
   const mutation = useMutation({
@@ -250,22 +260,24 @@ export function AdminResourceImportPage() {
       return postData<{ created: number; failed: number; errors: string[] }>('/api/admin/resources/batch-import', { items });
     },
     onSuccess: (result) => {
-      notify.success(`导入完成：成功 ${result.created}，失败 ${result.failed}`);
+      notify.success(t('admin.resourceImport.success', { created: result.created, failed: result.failed }));
       if (result.errors.length > 0) {
-        notify.error('部分资源导入失败', result.errors.join('\n'));
+        notify.error(t('admin.resourceImport.partialErrorTitle'), result.errors.join('\n'));
       }
       qc.invalidateQueries({ queryKey: ['admin-resources'] });
     },
-    onError: (e: any) => showError(e, '导入失败'),
+    onError: (e: any) => showError(e, t('admin.resourceImport.error')),
   });
 
   return (
     <div className="space-y-4">
-      <PageHeader title="批量导入" description="通过 JSON 数组批量导入资源" />
+      <PageHeader title={t('admin.resourceImport.title')} description={t('admin.resourceImport.description')} />
       <Card className="space-y-3">
-        <CardDescription>请粘贴资源 JSON 数组。</CardDescription>
+        <CardDescription>{t('admin.resourceImport.instructions')}</CardDescription>
         <Textarea value={text} onChange={(e) => setText(e.target.value)} />
-        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>导入</Button>
+        <Button onClick={() => mutation.mutate()} disabled={mutation.isPending}>
+          {t('admin.resourceImport.button')}
+        </Button>
       </Card>
     </div>
   );
@@ -273,6 +285,7 @@ export function AdminResourceImportPage() {
 
 export function AdminOrdersPage() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   const { data: orders } = useQuery({ queryKey: ['admin-orders'], queryFn: () => getData<Order[]>('/api/admin/orders') });
   const forceExpire = useMutation({
     mutationFn: (id: number) => postData(`/api/admin/orders/${id}/force-expire`),
@@ -284,19 +297,19 @@ export function AdminOrdersPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="订单管理" description="查看并控制全部订单" />
+      <PageHeader title={t('admin.orders.title')} description={t('admin.orders.description')} />
       <Card>
         <Table>
           <thead>
             <Tr>
-              <Th>订单号</Th>
-              <Th>用户ID</Th>
-              <Th>资源</Th>
-              <Th>金额</Th>
-              <Th>状态</Th>
-              <Th>开始时间</Th>
-              <Th>到期时间</Th>
-              <Th>操作</Th>
+              <Th>{t('user.table.orderNo')}</Th>
+              <Th>{t('user.table.userId')}</Th>
+              <Th>{t('user.table.resource')}</Th>
+              <Th>{t('user.table.amount')}</Th>
+              <Th>{t('user.table.status')}</Th>
+              <Th>{t('user.table.startAt')}</Th>
+              <Th>{t('user.table.expireAt')}</Th>
+              <Th>{t('user.table.actions')}</Th>
             </Tr>
           </thead>
           <tbody>
@@ -315,7 +328,7 @@ export function AdminOrdersPage() {
                     disabled={order.status !== 'ACTIVE' || forceExpire.isPending}
                     onClick={() => forceExpire.mutate(order.id)}
                   >
-                    强制过期
+                    {t('admin.orders.forceExpire')}
                   </Button>
                 </Td>
               </Tr>
@@ -328,22 +341,23 @@ export function AdminOrdersPage() {
 }
 
 export function AdminWalletPage() {
+  const { t } = useI18n();
   const [userId, setUserId] = useState('');
   const [amount, setAmount] = useState('');
-  const [remark, setRemark] = useState('手工充值');
+  const [remark, setRemark] = useState(t('admin.wallet.form.remarkPlaceholder'));
 
   const mutation = useMutation({
     mutationFn: () => {
       const uidRaw = userId.trim();
       const amountRaw = amount.trim();
       if (!/^\d+$/.test(uidRaw)) {
-        throw new Error('用户ID必须是正整数');
+        throw new Error(t('admin.wallet.validation.userId'));
       }
       if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(amountRaw)) {
-        throw new Error('金额格式不正确，最多保留2位小数');
+        throw new Error(t('admin.wallet.validation.amountFormat'));
       }
       if (Number(amountRaw) <= 0) {
-        throw new Error('金额必须大于 0');
+        throw new Error(t('admin.wallet.validation.amountPositive'));
       }
       return postData('/api/admin/wallet/topup', {
         user_id: Number(uidRaw),
@@ -351,8 +365,8 @@ export function AdminWalletPage() {
         remark: remark.trim() || null,
       });
     },
-    onSuccess: () => notify.success('充值成功'),
-    onError: (e: any) => showError(e, '充值失败'),
+    onSuccess: () => notify.success(t('admin.wallet.success')),
+    onError: (e: any) => showError(e, t('admin.wallet.error')),
   });
 
   function onSubmit(event: FormEvent) {
@@ -362,13 +376,31 @@ export function AdminWalletPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="钱包管理" description="手工充值与资金调整" />
+      <PageHeader title={t('admin.wallet.title')} description={t('admin.wallet.description')} />
       <Card>
         <form className="grid grid-cols-4 gap-2" onSubmit={onSubmit}>
-          <Input type="number" min="1" step="1" placeholder="用户ID（如 1）" value={userId} onChange={(e) => setUserId(e.target.value)} required />
-          <Input type="number" min="0.01" step="0.01" placeholder="金额（如 100.00）" value={amount} onChange={(e) => setAmount(e.target.value)} required />
-          <Input placeholder="备注" value={remark} onChange={(e) => setRemark(e.target.value)} />
-          <Button type="submit" disabled={mutation.isPending}>提交</Button>
+          <Input
+            type="number"
+            min="1"
+            step="1"
+            placeholder={t('admin.wallet.form.userIdPlaceholder')}
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            required
+          />
+          <Input
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder={t('admin.wallet.form.amountPlaceholder')}
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            required
+          />
+          <Input placeholder={t('admin.wallet.form.remarkPlaceholder')} value={remark} onChange={(e) => setRemark(e.target.value)} />
+          <Button type="submit" disabled={mutation.isPending}>
+            {t('admin.wallet.form.submit')}
+          </Button>
         </form>
       </Card>
     </div>
@@ -378,6 +410,7 @@ export function AdminWalletPage() {
 export function AdminUsersPage() {
   const qc = useQueryClient();
   const confirmAction = useConfirm();
+  const { t } = useI18n();
   const { data: users } = useQuery({ queryKey: ['admin-users'], queryFn: () => getData<AdminUser[]>('/api/admin/users') });
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => getData<UserInfo>('/api/auth/me') });
   const [username, setUsername] = useState('');
@@ -392,13 +425,13 @@ export function AdminUsersPage() {
       const passwordRaw = password.trim();
       const balanceRaw = initialBalance.trim();
       if (usernameRaw.length < 3) {
-        throw new Error('用户名至少 3 位');
+        throw new Error(t('admin.users.validation.username'));
       }
       if (passwordRaw.length < 6) {
-        throw new Error('密码至少 6 位');
+        throw new Error(t('admin.users.validation.password'));
       }
       if (!/^(?:0|[1-9]\d*)(?:\.\d{1,2})?$/.test(balanceRaw)) {
-        throw new Error('初始余额格式不正确，最多保留 2 位小数');
+        throw new Error(t('admin.users.validation.balance'));
       }
       return postData<AdminUser>('/api/admin/users', {
         username: usernameRaw,
@@ -415,9 +448,9 @@ export function AdminUsersPage() {
       setStatus('active');
       setInitialBalance('0');
       qc.invalidateQueries({ queryKey: ['admin-users'] });
-      notify.success('用户创建成功');
+      notify.success(t('admin.users.create.success'));
     },
-    onError: (e: any) => showError(e, '用户创建失败'),
+    onError: (e: any) => showError(e, t('admin.users.create.error')),
   });
 
   const statusMutation = useMutation({
@@ -425,18 +458,18 @@ export function AdminUsersPage() {
       patchData<AdminUser>(`/api/admin/users/${userId}/status`, { status: nextStatus }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-users'] });
-      notify.success('用户状态更新成功');
+      notify.success(t('admin.users.status.success'));
     },
-    onError: (e: any) => showError(e, '用户状态更新失败'),
+    onError: (e: any) => showError(e, t('admin.users.status.error')),
   });
 
   const deleteMutation = useMutation({
     mutationFn: (userId: number) => deleteData(`/api/admin/users/${userId}`),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-users'] });
-      notify.success('用户删除成功');
+      notify.success(t('admin.users.delete.success'));
     },
-    onError: (e: any) => showError(e, '用户删除失败'),
+    onError: (e: any) => showError(e, t('admin.users.delete.error')),
   });
 
   function onCreate(event: FormEvent) {
@@ -446,43 +479,53 @@ export function AdminUsersPage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="用户管理" description="用户列表与余额信息" />
+      <PageHeader title={t('admin.users.title')} description={t('admin.users.description')} />
       <Card>
-        <CardTitle className="mb-2">创建用户</CardTitle>
+        <CardTitle className="mb-2">{t('admin.users.create.title')}</CardTitle>
         <form className="grid grid-cols-6 gap-2" onSubmit={onCreate}>
-          <Input placeholder="用户名（至少3位）" value={username} onChange={(e) => setUsername(e.target.value)} required />
-          <Input type="password" placeholder="密码（至少6位）" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input placeholder={t('admin.users.create.usernamePlaceholder')} value={username} onChange={(e) => setUsername(e.target.value)} required />
+          <Input type="password" placeholder={t('admin.users.create.passwordPlaceholder')} value={password} onChange={(e) => setPassword(e.target.value)} required />
           <select
             className="flex h-9 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
             value={role}
             onChange={(e) => setRole(e.target.value as 'user' | 'admin')}
           >
-            <option value="user">普通用户</option>
-            <option value="admin">管理员</option>
+            <option value="user">{t('admin.users.create.role.user')}</option>
+            <option value="admin">{t('admin.users.create.role.admin')}</option>
           </select>
           <select
             className="flex h-9 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-ring"
             value={status}
             onChange={(e) => setStatus(e.target.value as 'active' | 'disabled')}
           >
-            <option value="active">正常</option>
-            <option value="disabled">已禁用</option>
+            <option value="active">{t('admin.users.create.status.active')}</option>
+            <option value="disabled">{t('admin.users.create.status.disabled')}</option>
           </select>
-          <Input type="number" min="0" step="0.01" placeholder="初始余额" value={initialBalance} onChange={(e) => setInitialBalance(e.target.value)} required />
-          <Button type="submit" disabled={createMutation.isPending}>创建</Button>
+          <Input
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder={t('admin.users.create.balancePlaceholder')}
+            value={initialBalance}
+            onChange={(e) => setInitialBalance(e.target.value)}
+            required
+          />
+          <Button type="submit" disabled={createMutation.isPending}>
+            {t('admin.users.create.submit')}
+          </Button>
         </form>
       </Card>
       <Card>
         <Table>
           <thead>
             <Tr>
-              <Th>ID</Th>
-              <Th>用户名</Th>
-              <Th>角色</Th>
-              <Th>状态</Th>
-              <Th>余额</Th>
-              <Th>创建时间</Th>
-              <Th>操作</Th>
+              <Th>{t('user.table.id')}</Th>
+              <Th>{t('admin.table.username')}</Th>
+              <Th>{t('admin.table.role')}</Th>
+              <Th>{t('user.table.status')}</Th>
+              <Th>{t('admin.table.balance')}</Th>
+              <Th>{t('admin.table.createdAt')}</Th>
+              <Th>{t('user.table.actions')}</Th>
             </Tr>
           </thead>
           <tbody>
@@ -506,17 +549,17 @@ export function AdminUsersPage() {
                         })
                       }
                     >
-                      {user.status === 'active' ? '封禁' : '解封'}
+                      {user.status === 'active' ? t('admin.users.actions.ban') : t('admin.users.actions.unban')}
                     </Button>
                     <Button
                       className="h-8 bg-rose-600 px-2 text-xs"
                       disabled={deleteMutation.isPending || me?.id === user.id}
                       onClick={async () => {
                         const ok = await confirmAction({
-                          title: '确认删除用户',
-                          description: `用户「${user.username}」将被永久删除，该操作不可恢复。`,
-                          confirmText: '确认删除',
-                          cancelText: '取消',
+                          title: t('admin.users.delete.confirmTitle'),
+                          description: t('admin.users.delete.confirmDescription', { name: user.username }),
+                          confirmText: t('common.confirmDelete'),
+                          cancelText: t('common.cancel'),
                           variant: 'destructive',
                         });
                         if (!ok) {
@@ -525,7 +568,7 @@ export function AdminUsersPage() {
                         deleteMutation.mutate(user.id);
                       }}
                     >
-                      删除
+                      {t('common.delete')}
                     </Button>
                   </div>
                 </Td>
@@ -539,13 +582,14 @@ export function AdminUsersPage() {
 }
 
 export function AdminSettingsPage() {
+  const { t } = useI18n();
   return (
     <div className="space-y-4">
-      <PageHeader title="系统设置" description="V1 版本固定参数" />
+      <PageHeader title={t('admin.settings.title')} description={t('admin.settings.description')} />
       <Card className="space-y-2">
-        <div className="text-sm"><span className="text-slate-500">默认协议：</span> RDP</div>
-        <div className="text-sm"><span className="text-slate-500">回收间隔：</span> 60 秒</div>
-        <div className="text-sm"><span className="text-slate-500">支付模式：</span> 手工充值</div>
+        <div className="text-sm"><span className="text-slate-500">{t('admin.settings.protocolLabel')}</span> {t('admin.settings.protocolValue')}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('admin.settings.reclaimLabel')}</span> {t('admin.settings.reclaimValue')}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('admin.settings.paymentModeLabel')}</span> {t('admin.settings.paymentModeValue')}</div>
       </Card>
     </div>
   );
@@ -554,6 +598,7 @@ export function AdminSettingsPage() {
 export function AdminProductsPage() {
   const qc = useQueryClient();
   const confirmAction = useConfirm();
+  const { t } = useI18n();
   const { data: products } = useQuery({ queryKey: ['admin-products'], queryFn: () => getData<Product[]>('/api/admin/products') });
   const [name, setName] = useState('');
   const [duration, setDuration] = useState('120');
@@ -566,9 +611,9 @@ export function AdminProductsPage() {
       setName('');
       qc.invalidateQueries({ queryKey: ['admin-products'] });
       qc.invalidateQueries({ queryKey: ['products'] });
-      notify.success('套餐创建成功');
+      notify.success(t('admin.products.create.success'));
     },
-    onError: (e: any) => showError(e, '创建套餐失败'),
+    onError: (e: any) => showError(e, t('admin.products.create.error')),
   });
 
   const deleteMutation = useMutation({
@@ -576,14 +621,14 @@ export function AdminProductsPage() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['admin-products'] });
       qc.invalidateQueries({ queryKey: ['products'] });
-      notify.success('套餐删除成功');
+      notify.success(t('admin.products.delete.success'));
     },
-    onError: (e: any) => showError(e, '删除套餐失败'),
+    onError: (e: any) => showError(e, t('admin.products.delete.error')),
   });
 
   return (
     <div className="space-y-4">
-      <PageHeader title="套餐管理" description="创建可售卖的时长套餐" />
+      <PageHeader title={t('admin.products.title')} description={t('admin.products.description')} />
       <Card>
         <form
           className="grid grid-cols-5 gap-2"
@@ -592,24 +637,24 @@ export function AdminProductsPage() {
             createMutation.mutate();
           }}
         >
-          <Input placeholder="名称" value={name} onChange={(e) => setName(e.target.value)} required />
-          <Input placeholder="时长(分钟)" value={duration} onChange={(e) => setDuration(e.target.value)} required />
-          <Input placeholder="价格" value={price} onChange={(e) => setPrice(e.target.value)} required />
-          <Input placeholder="分组标签" value={groupTag} onChange={(e) => setGroupTag(e.target.value)} />
-          <Button type="submit">创建</Button>
+          <Input placeholder={t('admin.products.form.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
+          <Input placeholder={t('admin.products.form.durationPlaceholder')} value={duration} onChange={(e) => setDuration(e.target.value)} required />
+          <Input placeholder={t('admin.products.form.pricePlaceholder')} value={price} onChange={(e) => setPrice(e.target.value)} required />
+          <Input placeholder={t('admin.products.form.groupPlaceholder')} value={groupTag} onChange={(e) => setGroupTag(e.target.value)} />
+          <Button type="submit">{t('admin.products.form.submit')}</Button>
         </form>
       </Card>
       <Card>
         <Table>
           <thead>
             <Tr>
-              <Th>ID</Th>
-              <Th>名称</Th>
-              <Th>时长</Th>
-              <Th>价格</Th>
-              <Th>启用</Th>
-              <Th>分组</Th>
-              <Th>操作</Th>
+              <Th>{t('user.table.id')}</Th>
+              <Th>{t('admin.table.name')}</Th>
+              <Th>{t('user.table.duration')}</Th>
+              <Th>{t('user.table.price')}</Th>
+              <Th>{t('common.enable')}</Th>
+              <Th>{t('admin.table.group')}</Th>
+              <Th>{t('user.table.actions')}</Th>
             </Tr>
           </thead>
           <tbody>
@@ -617,7 +662,9 @@ export function AdminProductsPage() {
               <Tr key={product.id}>
                 <Td>{product.id}</Td>
                 <Td>{product.name}</Td>
-                <Td>{product.duration_minutes} 分钟</Td>
+                <Td>
+                  {product.duration_minutes} {t('admin.products.table.durationUnit')}
+                </Td>
                 <Td>{formatCurrency(product.price)}</Td>
                 <Td>{formatEnabled(product.enabled)}</Td>
                 <Td>{product.group_tag || '-'}</Td>
@@ -627,10 +674,10 @@ export function AdminProductsPage() {
                     disabled={deleteMutation.isPending}
                     onClick={async () => {
                       const ok = await confirmAction({
-                        title: '确认删除套餐',
-                        description: `套餐「${product.name}」将被永久删除，且不可恢复。`,
-                        confirmText: '确认删除',
-                        cancelText: '取消',
+                        title: t('admin.products.delete.confirmTitle'),
+                        description: t('admin.products.delete.confirmDescription', { name: product.name }),
+                        confirmText: t('common.confirmDelete'),
+                        cancelText: t('common.cancel'),
                         variant: 'destructive',
                       });
                       if (!ok) {
@@ -639,7 +686,7 @@ export function AdminProductsPage() {
                       deleteMutation.mutate(product.id);
                     }}
                   >
-                    删除
+                    {t('common.delete')}
                   </Button>
                 </Td>
               </Tr>
@@ -656,17 +703,18 @@ export function AdminProfilePage() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { t } = useI18n();
 
   const changePasswordMutation = useMutation({
     mutationFn: () => {
       if (!currentPassword.trim() || !newPassword.trim() || !confirmPassword.trim()) {
-        throw new Error('请完整填写密码信息');
+        throw new Error(t('user.profile.validation.fillAll'));
       }
       if (newPassword.length < 6) {
-        throw new Error('新密码至少 6 位');
+        throw new Error(t('user.profile.validation.minLength'));
       }
       if (newPassword !== confirmPassword) {
-        throw new Error('两次输入的新密码不一致');
+        throw new Error(t('user.profile.validation.mismatch'));
       }
       return postData('/api/auth/change-password', {
         current_password: currentPassword,
@@ -677,10 +725,10 @@ export function AdminProfilePage() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
-      notify.success('密码修改成功');
+      notify.success(t('user.profile.changeSuccess'));
     },
     onError: (e: any) => {
-      showError(e, '修改密码失败');
+      showError(e, t('user.profile.changeError'));
     },
   });
 
@@ -691,40 +739,40 @@ export function AdminProfilePage() {
 
   return (
     <div className="space-y-4">
-      <PageHeader title="个人中心" description="查看管理员账户信息并修改密码" />
+      <PageHeader title={t('admin.profile.title')} description={t('admin.profile.description')} />
       <Card className="space-y-2">
-        <div className="text-sm"><span className="text-slate-500">用户名：</span> {me?.username}</div>
-        <div className="text-sm"><span className="text-slate-500">角色：</span> {formatRole(me?.role)}</div>
-        <div className="text-sm"><span className="text-slate-500">状态：</span> {formatUserStatus(me?.status)}</div>
-        <div className="text-sm"><span className="text-slate-500">创建时间：</span> {me ? formatDateTime(me.created_at) : '-'}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('user.profile.usernameLabel')}</span> {me?.username}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('user.profile.roleLabel')}</span> {formatRole(me?.role)}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('user.profile.statusLabel')}</span> {formatUserStatus(me?.status)}</div>
+        <div className="text-sm"><span className="text-slate-500">{t('user.profile.createdAtLabel')}</span> {me ? formatDateTime(me.created_at) : '-'}</div>
       </Card>
       <Card className="space-y-3">
-        <CardTitle>修改密码</CardTitle>
+        <CardTitle>{t('user.profile.changePasswordTitle')}</CardTitle>
         <form className="grid gap-2 md:grid-cols-3" onSubmit={onChangePassword}>
           <Input
             type="password"
-            placeholder="当前密码"
+            placeholder={t('user.profile.currentPasswordPlaceholder')}
             value={currentPassword}
             onChange={(e) => setCurrentPassword(e.target.value)}
             required
           />
           <Input
             type="password"
-            placeholder="新密码（至少6位）"
+            placeholder={t('user.profile.newPasswordPlaceholder')}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
           />
           <Input
             type="password"
-            placeholder="确认新密码"
+            placeholder={t('user.profile.confirmPasswordPlaceholder')}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
           <div className="md:col-span-3">
             <Button type="submit" disabled={changePasswordMutation.isPending}>
-              {changePasswordMutation.isPending ? '提交中...' : '确认修改'}
+              {changePasswordMutation.isPending ? t('user.profile.submitLoading') : t('user.profile.submit')}
             </Button>
           </div>
         </form>

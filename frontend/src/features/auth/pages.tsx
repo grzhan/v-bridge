@@ -5,15 +5,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/features/auth/auth-context';
+import { useI18n } from '@/features/i18n/i18n-context';
+import { LanguageToggle } from '@/features/i18n/language-toggle';
 import { postData } from '@/lib/api';
 
 function AuthContainer({ children, title, subtitle }: { children: ReactNode; title: string; subtitle: string }) {
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-100 p-4">
       <Card className="w-full max-w-md space-y-4">
-        <div>
-          <CardTitle className="text-xl">{title}</CardTitle>
-          <CardDescription>{subtitle}</CardDescription>
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <CardTitle className="text-xl">{title}</CardTitle>
+            <CardDescription>{subtitle}</CardDescription>
+          </div>
+          <LanguageToggle />
         </div>
         {children}
       </Card>
@@ -24,10 +29,12 @@ function AuthContainer({ children, title, subtitle }: { children: ReactNode; tit
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { t, language } = useI18n();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const errorSeparator = language === 'zh-CN' ? '；' : '; ';
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -42,13 +49,13 @@ export function LoginPage() {
       if (typeof detail === 'string' && detail.trim()) {
         setError(detail);
       } else if (Array.isArray(detail)) {
-        setError(detail.map((item) => item?.msg || '参数校验失败').join('；'));
+        setError(detail.map((item) => item?.msg || t('auth.login.error.validation')).join(errorSeparator));
       } else if (err?.response?.status === 404) {
-        setError('登录接口不存在，请检查后端端口或配置。');
+        setError(t('auth.login.error.notFound'));
       } else if (err?.code === 'ERR_NETWORK') {
-        setError('无法连接后端，请确认前端 API 地址与后端端口一致。');
+        setError(t('auth.login.error.network'));
       } else {
-        setError('登录失败，请稍后重试。');
+        setError(t('auth.login.error.generic'));
       }
     } finally {
       setLoading(false);
@@ -56,23 +63,24 @@ export function LoginPage() {
   }
 
   return (
-    <AuthContainer title="登录" subtitle="登录远程网关系统">
+    <AuthContainer title={t('auth.login.title')} subtitle={t('auth.login.subtitle')}>
       <form className="space-y-3" onSubmit={onSubmit}>
         <div className="space-y-1">
-          <label className="text-sm">用户名</label>
+          <label className="text-sm">{t('auth.fields.username')}</label>
           <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
         </div>
         <div className="space-y-1">
-          <label className="text-sm">密码</label>
+          <label className="text-sm">{t('auth.fields.password')}</label>
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? '登录中...' : '登录'}
+          {loading ? t('auth.login.buttonLoading') : t('auth.login.button')}
         </Button>
       </form>
       <p className="text-xs text-slate-500">
-        还没有账号？<Link className="text-blue-600" to="/register">去注册</Link>
+        {t('auth.login.registerPrompt')}{' '}
+        <Link className="text-blue-600" to="/register">{t('auth.login.registerLink')}</Link>
       </p>
     </AuthContainer>
   );
@@ -80,6 +88,7 @@ export function LoginPage() {
 
 export function RegisterPage() {
   const navigate = useNavigate();
+  const { t } = useI18n();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -89,7 +98,7 @@ export function RegisterPage() {
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     if (password !== confirmPassword) {
-      setError('两次输入的密码不一致。');
+      setError(t('auth.register.error.passwordMismatch'));
       return;
     }
 
@@ -103,11 +112,11 @@ export function RegisterPage() {
       if (typeof detail === 'string' && detail.trim()) {
         setError(detail);
       } else if (err?.response?.status === 404) {
-        setError('注册接口不存在，请检查后端端口或配置。');
+        setError(t('auth.register.error.notFound'));
       } else if (err?.code === 'ERR_NETWORK') {
-        setError('无法连接后端，请确认后端已启动。');
+        setError(t('auth.register.error.network'));
       } else {
-        setError('注册失败，请重试。');
+        setError(t('auth.register.error.generic'));
       }
     } finally {
       setLoading(false);
@@ -115,27 +124,28 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthContainer title="注册" subtitle="创建新用户账号">
+    <AuthContainer title={t('auth.register.title')} subtitle={t('auth.register.subtitle')}>
       <form className="space-y-3" onSubmit={onSubmit}>
         <div className="space-y-1">
-          <label className="text-sm">用户名</label>
+          <label className="text-sm">{t('auth.fields.username')}</label>
           <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
         </div>
         <div className="space-y-1">
-          <label className="text-sm">密码</label>
+          <label className="text-sm">{t('auth.fields.password')}</label>
           <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
         <div className="space-y-1">
-          <label className="text-sm">确认密码</label>
+          <label className="text-sm">{t('auth.fields.confirmPassword')}</label>
           <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
         </div>
         {error ? <p className="text-xs text-red-600">{error}</p> : null}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? '注册中...' : '注册'}
+          {loading ? t('auth.register.buttonLoading') : t('auth.register.button')}
         </Button>
       </form>
       <p className="text-xs text-slate-500">
-        已有账号？<Link className="text-blue-600" to="/login">去登录</Link>
+        {t('auth.register.loginPrompt')}{' '}
+        <Link className="text-blue-600" to="/login">{t('auth.register.loginLink')}</Link>
       </p>
     </AuthContainer>
   );

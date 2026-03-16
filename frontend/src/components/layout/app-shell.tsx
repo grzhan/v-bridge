@@ -3,33 +3,38 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/features/auth/auth-context';
+import { LanguageToggle } from '@/features/i18n/language-toggle';
+import { useI18n, type TranslationKey } from '@/features/i18n/i18n-context';
 import type { Role } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
+type NavItem = { to: string; labelKey: TranslationKey };
+
 const userNav = [
-  { to: '/app/dashboard', label: '控制台' },
-  { to: '/app/products', label: '套餐购买' },
-  { to: '/app/orders', label: '我的订单' },
-  { to: '/app/wallet', label: '钱包' },
-  { to: '/app/profile', label: '个人信息' },
-];
+  { to: '/app/dashboard', labelKey: 'nav.user.dashboard' },
+  { to: '/app/products', labelKey: 'nav.user.products' },
+  { to: '/app/orders', labelKey: 'nav.user.orders' },
+  { to: '/app/wallet', labelKey: 'nav.user.wallet' },
+  { to: '/app/profile', labelKey: 'nav.user.profile' },
+] as const satisfies readonly NavItem[];
 
 const adminNav = [
-  { to: '/admin/overview', label: '概览' },
-  { to: '/admin/products', label: '套餐管理' },
-  { to: '/admin/resources', label: '资源池' },
-  { to: '/admin/resources/import', label: '批量导入' },
-  { to: '/admin/orders', label: '订单管理' },
-  { to: '/admin/wallet', label: '钱包管理' },
-  { to: '/admin/users', label: '用户管理' },
-  { to: '/admin/settings', label: '系统设置' },
-  { to: '/admin/profile', label: '个人中心' },
-];
+  { to: '/admin/overview', labelKey: 'nav.admin.overview' },
+  { to: '/admin/products', labelKey: 'nav.admin.products' },
+  { to: '/admin/resources', labelKey: 'nav.admin.resources' },
+  { to: '/admin/resources/import', labelKey: 'nav.admin.resourcesImport' },
+  { to: '/admin/orders', labelKey: 'nav.admin.orders' },
+  { to: '/admin/wallet', labelKey: 'nav.admin.wallet' },
+  { to: '/admin/users', labelKey: 'nav.admin.users' },
+  { to: '/admin/settings', labelKey: 'nav.admin.settings' },
+  { to: '/admin/profile', labelKey: 'nav.admin.profile' },
+] as const satisfies readonly NavItem[];
 
 export function AppShell({ role }: { role: Role }) {
   const navItems = role === 'admin' ? adminNav : userNav;
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const needsExactMatch = (path: string) => navItems.some((item) => item.to !== path && item.to.startsWith(`${path}/`));
 
   return (
@@ -38,9 +43,9 @@ export function AppShell({ role }: { role: Role }) {
         <aside className="border-r bg-white">
           <div className="border-b px-4 py-4">
             <Link to={role === 'admin' ? '/admin/overview' : '/app/dashboard'} className="text-lg font-semibold text-slate-900">
-              远程网关
+              {t('app.name')}
             </Link>
-            <p className="text-xs text-slate-500">{role === 'admin' ? '管理后台' : '用户中心'}</p>
+            <p className="text-xs text-slate-500">{role === 'admin' ? t('app.subtitle.admin') : t('app.subtitle.user')}</p>
           </div>
           <nav className="space-y-1 p-3">
             {navItems.map((item) => (
@@ -55,7 +60,7 @@ export function AppShell({ role }: { role: Role }) {
                   )
                 }
               >
-                {item.label}
+                {t(item.labelKey)}
               </NavLink>
             ))}
           </nav>
@@ -63,17 +68,20 @@ export function AppShell({ role }: { role: Role }) {
 
         <section className="flex min-h-screen flex-col">
           <header className="flex items-center justify-between border-b bg-white px-6 py-3">
-            <p className="text-sm text-slate-600">{role === 'admin' ? '系统管理' : '远程桌面访问'}</p>
-            <Button
-              className="h-8 gap-2 bg-slate-800 px-3 text-xs"
-              onClick={() => {
-                logout();
-                navigate('/login');
-              }}
-            >
-              <LogOut className="h-3.5 w-3.5" />
-              退出登录
-            </Button>
+            <p className="text-sm text-slate-600">{role === 'admin' ? t('layout.header.tagline.admin') : t('layout.header.tagline.user')}</p>
+            <div className="flex items-center gap-3">
+              <LanguageToggle className="text-slate-600" />
+              <Button
+                className="h-8 gap-2 bg-slate-800 px-3 text-xs"
+                onClick={() => {
+                  logout();
+                  navigate('/login');
+                }}
+              >
+                <LogOut className="h-3.5 w-3.5" />
+                {t('layout.logout')}
+              </Button>
+            </div>
           </header>
           <main className="flex-1 p-6">
             <Outlet />

@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
 
+import { useI18n, type TranslationKey } from '@/features/i18n/i18n-context';
 import { cn } from '@/lib/utils';
 
 const colors: Record<string, string> = {
@@ -11,20 +12,22 @@ const colors: Record<string, string> = {
   DISABLED: 'bg-rose-100 text-rose-700',
 };
 
-const labels: Record<string, string> = {
-  ACTIVE: '生效中',
-  EXPIRED: '已过期',
-  CANCELLED: '已取消',
-  IDLE: '空闲',
-  BUSY: '使用中',
-  DISABLED: '已停用',
+const labelKeys: Partial<Record<string, TranslationKey>> = {
+  ACTIVE: 'status.ACTIVE',
+  EXPIRED: 'status.EXPIRED',
+  CANCELLED: 'status.CANCELLED',
+  IDLE: 'status.IDLE',
+  BUSY: 'status.BUSY',
+  DISABLED: 'status.DISABLED',
 };
 
 export function Badge({ children, className }: PropsWithChildren<{ className?: string }>) {
   const key = String(children);
+  const { t } = useI18n();
+  const labelKey = labelKeys[key];
   return (
     <span className={cn('inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium', colors[key] || 'bg-slate-100 text-slate-700', className)}>
-      {labels[key] || children}
+      {labelKey ? t(labelKey) : children}
     </span>
   );
 }
