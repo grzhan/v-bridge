@@ -74,7 +74,10 @@ function getLanguage(): Language {
     return DEFAULT_LANGUAGE;
   }
   const stored = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
-  return stored === 'en' ? 'en' : DEFAULT_LANGUAGE;
+  if (stored === 'zh-CN' || stored === 'en') {
+    return stored;
+  }
+  return DEFAULT_LANGUAGE;
 }
 
 function getLocaleTag(language: Language) {

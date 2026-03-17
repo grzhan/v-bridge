@@ -1,7 +1,7 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
 export type Language = 'zh-CN' | 'en';
-export const DEFAULT_LANGUAGE: Language = 'zh-CN';
+export const DEFAULT_LANGUAGE: Language = 'en';
 export const LANGUAGE_STORAGE_KEY = 'v-bridge:language-preference';
 
 type TranslationParams = Record<string, string | number>;

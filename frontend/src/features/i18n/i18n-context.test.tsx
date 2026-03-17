@@ -13,11 +13,11 @@ describe('I18nProvider', () => {
     window.localStorage.clear();
   });
 
-  it('falls back to zh-CN when localStorage is empty', () => {
+  it('falls back to en when localStorage is empty', () => {
     const { result } = renderHook(() => useI18n(), { wrapper });
 
-    expect(result.current.language).toBe('zh-CN');
-    expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('zh-CN');
+    expect(result.current.language).toBe('en');
+    expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('en');
   });
 
   it('reads persisted language preference', () => {
@@ -31,34 +31,34 @@ describe('I18nProvider', () => {
     const { result } = renderHook(() => useI18n(), { wrapper });
 
     act(() => {
-      result.current.setLanguage('en');
+      result.current.setLanguage('zh-CN');
     });
 
-    expect(result.current.language).toBe('en');
-    expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('en');
+    expect(result.current.language).toBe('zh-CN');
+    expect(window.localStorage.getItem(LANGUAGE_STORAGE_KEY)).toBe('zh-CN');
   });
 
   it('translates keys with the current language', () => {
     const { result } = renderHook(() => useI18n(), { wrapper });
 
-    expect(result.current.t('auth.login.title')).toBe('登录');
+    expect(result.current.t('auth.login.title')).toBe('Log in');
 
     act(() => {
-      result.current.setLanguage('en');
+      result.current.setLanguage('zh-CN');
     });
 
-    expect(result.current.t('auth.login.title')).toBe('Log in');
+    expect(result.current.t('auth.login.title')).toBe('登录');
   });
 
   it('replaces template parameters', () => {
     const { result } = renderHook(() => useI18n(), { wrapper });
 
-    expect(result.current.t('user.orders.release.success', { ratio: 50, amount: '¥10.00' })).toContain('50');
+    expect(result.current.t('user.orders.release.success', { ratio: 50, amount: '$10.00' })).toContain('Refund 50');
 
     act(() => {
-      result.current.setLanguage('en');
+      result.current.setLanguage('zh-CN');
     });
 
-    expect(result.current.t('user.orders.release.success', { ratio: 50, amount: '$10.00' })).toContain('Refund 50');
+    expect(result.current.t('user.orders.release.success', { ratio: 50, amount: '¥10.00' })).toContain('50');
   });
 });
